@@ -1,5 +1,5 @@
 import { cancelTranslation, runTranslation } from "./bridge";
-import type { TranslationInput } from "./types";
+import type { TranslationInput } from "../types";
 
 export interface MessageTranslation {
     sourceText: string;

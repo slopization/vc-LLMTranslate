@@ -1,7 +1,7 @@
 import { definePluginSettings } from "@api/Settings";
 import { OptionType } from "@utils/types";
 
-import { getLanguageLabel, getLanguageName, LANGUAGES, SOURCE_LANGUAGES } from "./languages";
+import { getLanguageLabel, getLanguageName, LANGUAGES, SOURCE_LANGUAGES } from "./utils/languages";
 import type { TranslationInput } from "./types";
 
 export const settings = definePluginSettings({

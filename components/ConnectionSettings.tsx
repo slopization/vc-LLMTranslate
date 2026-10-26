@@ -1,9 +1,9 @@
 import { Button } from "@components/Button";
 import { useEffect, useState } from "@webpack/common";
 
-import { Native } from "./bridge";
+import { Native } from "../utils/bridge";
 import { LanguageSettings } from "./LanguageSettings";
-import type { Provider, PublicConnection } from "./types";
+import type { Provider, PublicConnection } from "../types";
 
 const endpointExamples: Record<Provider, string> = {
     openai: "https://router.example.com/v1/chat/completions",

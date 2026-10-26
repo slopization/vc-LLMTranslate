@@ -2,7 +2,7 @@ import { TextButton } from "@components/Button";
 import type { Message } from "@vencord/discord-types";
 import { useEffect, useState } from "@webpack/common";
 
-import { getTranslationOptions } from "./settings";
+import { getTranslationOptions } from "../settings";
 import { TranslateIcon } from "./TranslateIcon";
 import {
     dismissMessageTranslation,
@@ -10,7 +10,7 @@ import {
     invalidateMessageTranslation,
     requestMessageTranslation,
     subscribeMessageTranslation,
-} from "./translations";
+} from "../utils/translations";
 
 export function getMessageText(message: Message) {
     return message.content || message.messageSnapshots?.[0]?.message.content || "";

@@ -1,7 +1,7 @@
 import { useState } from "@webpack/common";
 
-import { LANGUAGES, SOURCE_LANGUAGES } from "./languages";
-import { settings } from "./settings";
+import { LANGUAGES, SOURCE_LANGUAGES } from "../utils/languages";
+import { settings } from "../settings";
 
 export function LanguageSettings() {
     const [id] = useState(() => crypto.randomUUID());

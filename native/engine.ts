@@ -1,4 +1,4 @@
-import type { Connection, Problem, Result, TranslationInput } from "./types";
+import type { Connection, Problem, Result, TranslationInput } from "../types";
 
 const MAX_RESPONSE_BYTES = 1024 * 1024;
 const MAX_INPUT_LENGTH = 12000;

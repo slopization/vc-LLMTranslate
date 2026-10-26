@@ -4,7 +4,7 @@ import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync 
 import { join } from "path";
 
 import { failure, TranslationEngine, validateConnection } from "./engine";
-import type { Connection, PublicConnection, Result } from "./types";
+import type { Connection, PublicConnection, Result } from "../types";
 
 const directory = join(DATA_DIR, "llmTranslate");
 const file = join(directory, "connection.bin");

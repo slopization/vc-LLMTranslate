@@ -7,13 +7,13 @@ import definePlugin from "@utils/types";
 import type { Message } from "@vencord/discord-types";
 import { closeModal, DraftStore, DraftType, Menu, Modal, openModal, SelectedChannelStore } from "@webpack/common";
 
-import { Native } from "./bridge";
-import { ConnectionSettings } from "./ConnectionSettings";
+import { Native } from "./utils/bridge";
+import { ConnectionSettings } from "./components/ConnectionSettings";
 import { settings } from "./settings";
-import { getMessageText, translateMessage, TranslationAccessory } from "./TranslationAccessory";
-import { TranslateIcon } from "./TranslateIcon";
-import { clearMessageTranslations, dismissMessageTranslation } from "./translations";
-import { Translator } from "./Translator";
+import { getMessageText, translateMessage, TranslationAccessory } from "./components/TranslationAccessory";
+import { TranslateIcon } from "./components/TranslateIcon";
+import { clearMessageTranslations, dismissMessageTranslation } from "./utils/translations";
+import { Translator } from "./components/Translator";
 
 const modalKey = "llm-translate-modal";
 

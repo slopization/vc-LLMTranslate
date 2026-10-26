@@ -1,9 +1,9 @@
 import { Button } from "@components/Button";
 import { useEffect, useState } from "@webpack/common";
 
-import { cancelTranslation, runTranslation } from "./bridge";
+import { cancelTranslation, runTranslation } from "../utils/bridge";
 import { LanguageSettings } from "./LanguageSettings";
-import { createTranslationInput, settings } from "./settings";
+import { createTranslationInput, settings } from "../settings";
 
 export interface TranslatorProps {
     initialText?: string;
