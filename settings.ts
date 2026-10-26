@@ -9,28 +9,16 @@ import type { TranslationInput } from "./types";
 
 export const settings = definePluginSettings({
     sourceLanguage: {
-        type: OptionType.SELECT,
-        displayName: "원문 언어",
+        type: OptionType.STRING,
+        default: "auto",
         hidden: true,
         description: "",
-        componentProps: { "aria-label": "원문 언어" },
-        options: SOURCE_LANGUAGES.map((language) => ({
-            label: language.label,
-            value: language.value,
-            default: language.value === "auto",
-        })),
     },
     targetLanguage: {
-        type: OptionType.SELECT,
-        displayName: "번역 언어",
+        type: OptionType.STRING,
+        default: "ko",
         hidden: true,
         description: "",
-        componentProps: { "aria-label": "번역 언어" },
-        options: LANGUAGES.map((language) => ({
-            label: language.label,
-            value: language.value,
-            default: language.value === "ko",
-        })),
     },
     languages: {
         type: OptionType.COMPONENT,

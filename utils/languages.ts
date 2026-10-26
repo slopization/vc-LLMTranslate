@@ -22,7 +22,7 @@ const overrides: Record<string, { label: string; name: string }> = {
 };
 
 function normalize(value: string): string {
-    return value.normalize("NFKC").toLocaleLowerCase().trim().replace(/\s+/g, " ");
+    return value.normalize("NFKC").toLowerCase().trim().replace(/\s+/g, " ");
 }
 
 export const LANGUAGES: readonly LanguageOption[] = LANGUAGE_CATALOG.map(([value, name, territories]) => ({
