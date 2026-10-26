@@ -15,6 +15,7 @@ export interface MessageTranslation {
 
 type TranslationOptions = Omit<TranslationInput, "text"> & { sourceLabel: string; targetLabel: string };
 const entries = new Map<string, MessageTranslation>();
+const completions = new Map<string, Promise<void>>();
 const listeners = new Map<string, Set<() => void>>();
 const maximumEntries = 100;
 
@@ -62,7 +63,8 @@ export async function requestMessageTranslation(messageId: string, sourceText: s
         previous.sourceLanguage === (options.sourceLanguage ?? "auto") &&
         previous.targetLanguage === options.targetLanguage
     )
-        return;
+        return completions.get(messageId);
+    const previousCompletion = completions.get(messageId);
     if (previous) dismissMessageTranslation(messageId);
     if (entries.size >= maximumEntries) {
         const oldestId = entries.keys().next().value;
@@ -81,28 +83,36 @@ export async function requestMessageTranslation(messageId: string, sourceText: s
     };
     entries.set(messageId, entry);
     notify(messageId);
+    const completion = (async () => {
+        try {
+            await previousCompletion;
+            if (entries.get(messageId) !== entry) return;
+            const result = await runTranslation(entry.owner, {
+                text: sourceText,
+                sourceLanguage: entry.sourceLanguage,
+                targetLanguage: entry.targetLanguage,
+            });
+            if (entries.get(messageId) !== entry) return;
+            entries.set(
+                messageId,
+                result.ok
+                    ? { ...entry, status: "complete", text: result.value }
+                    : { ...entry, status: "error", error: result.error.detail },
+            );
+        } catch {
+            if (entries.get(messageId) !== entry) return;
+            entries.set(messageId, {
+                ...entry,
+                status: "error",
+                error: "번역 요청을 처리하지 못했습니다. 연결 설정을 확인한 뒤 다시 시도해 주십시오.",
+            });
+        }
+        notify(messageId);
+    })();
+    completions.set(messageId, completion);
     try {
-        if (previous?.status === "loading") await cancelTranslation(previous.owner);
-        if (entries.get(messageId) !== entry) return;
-        const result = await runTranslation(entry.owner, {
-            text: sourceText,
-            sourceLanguage: entry.sourceLanguage,
-            targetLanguage: entry.targetLanguage,
-        });
-        if (entries.get(messageId) !== entry) return;
-        entries.set(
-            messageId,
-            result.ok
-                ? { ...entry, status: "complete", text: result.value }
-                : { ...entry, status: "error", error: result.error.detail },
-        );
-    } catch {
-        if (entries.get(messageId) !== entry) return;
-        entries.set(messageId, {
-            ...entry,
-            status: "error",
-            error: "번역 요청을 처리하지 못했습니다. 연결 설정을 확인한 뒤 다시 시도해 주십시오.",
-        });
+        await completion;
+    } finally {
+        if (completions.get(messageId) === completion) completions.delete(messageId);
     }
-    notify(messageId);
 }

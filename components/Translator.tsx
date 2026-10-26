@@ -22,6 +22,12 @@ export function Translator({ initialText = "", onApply }: TranslatorProps) {
     const [outputLanguages, setOutputLanguages] = useState({ sourceLanguage, targetLanguage });
     const [busy, setBusy] = useState(false);
     const [notice, setNotice] = useState("");
+    const [copyNotice, setCopyNotice] = useState<{
+        request: AbortController | null;
+        operation: symbol;
+        text: string;
+        failed: boolean;
+    }>();
     const [error, setError] = useState("");
 
     useEffect(() => {
@@ -36,6 +42,7 @@ export function Translator({ initialText = "", onApply }: TranslatorProps) {
         setRequest(current);
         setBusy(true);
         setOutput("");
+        setCopyNotice(undefined);
         setOutputLanguages({ sourceLanguage, targetLanguage });
         setNotice("");
         setError("");
@@ -53,6 +60,7 @@ export function Translator({ initialText = "", onApply }: TranslatorProps) {
 
     async function cancel() {
         request?.abort();
+        setCopyNotice(undefined);
         setNotice("번역을 취소했습니다.");
         try {
             await cancelTranslation(owner);
@@ -65,6 +73,7 @@ export function Translator({ initialText = "", onApply }: TranslatorProps) {
 
     function invalidate() {
         setOutput("");
+        setCopyNotice(undefined);
         setNotice("");
         setError("");
     }
@@ -127,11 +136,25 @@ export function Translator({ initialText = "", onApply }: TranslatorProps) {
                             <Button
                                 variant="secondary"
                                 onClick={async () => {
+                                    const operation = Symbol("copy");
+                                    setCopyNotice({ request, operation, text: "", failed: false });
                                     try {
                                         await navigator.clipboard.writeText(output);
-                                        setNotice("번역 결과를 복사했습니다.");
+                                        setCopyNotice((current) =>
+                                            current?.operation === operation
+                                                ? { ...current, text: "번역 결과를 복사했습니다." }
+                                                : current,
+                                        );
                                     } catch {
-                                        setError("복사하지 못했습니다. 번역 결과를 선택하여 복사해 주십시오.");
+                                        setCopyNotice((current) =>
+                                            current?.operation === operation
+                                                ? {
+                                                      ...current,
+                                                      text: "복사하지 못했습니다. 번역 결과를 선택하여 복사해 주십시오.",
+                                                      failed: true,
+                                                  }
+                                                : current,
+                                        );
                                     }
                                 }}
                             >
@@ -140,6 +163,7 @@ export function Translator({ initialText = "", onApply }: TranslatorProps) {
                             {onApply && (
                                 <Button
                                     onClick={() => {
+                                        setCopyNotice(undefined);
                                         if (onApply(output))
                                             setNotice(
                                                 "입력창에 번역 결과를 추가했습니다. 내용을 확인한 뒤 전송해 주십시오.",
@@ -154,6 +178,9 @@ export function Translator({ initialText = "", onApply }: TranslatorProps) {
                                 </Button>
                             )}
                         </div>
+                        {copyNotice?.request === request && copyNotice.text && (
+                            <Paragraph role={copyNotice.failed ? "alert" : "status"}>{copyNotice.text}</Paragraph>
+                        )}
                     </div>
                 )}
             {notice && <Paragraph role="status">{notice}</Paragraph>}

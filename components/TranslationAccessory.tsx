@@ -12,7 +12,7 @@ import {
     subscribeMessageTranslation,
 } from "../utils/translations";
 
-export function getMessageText(message: Message) {
+export function getMessageText(message: Pick<Message, "content"> & Partial<Pick<Message, "messageSnapshots">>) {
     return message.content || message.messageSnapshots?.[0]?.message.content || "";
 }
 
@@ -23,12 +23,12 @@ export function translateMessage(message: Message) {
 export function TranslationAccessory({ message }: { message: Message }) {
     const sourceText = getMessageText(message);
     const [entry, setEntry] = useState(() => getMessageTranslation(message.id, sourceText));
-    const [copyNotice, setCopyNotice] = useState("");
+    const [copyNotice, setCopyNotice] = useState<{ owner: symbol; operation: symbol; text: string; failed: boolean }>();
 
     useEffect(() => {
         const update = () => {
             setEntry(getMessageTranslation(message.id, sourceText));
-            setCopyNotice("");
+            setCopyNotice(undefined);
         };
         const unsubscribe = subscribeMessageTranslation(message.id, update);
         invalidateMessageTranslation(message.id, sourceText);
@@ -62,11 +62,23 @@ export function TranslationAccessory({ message }: { message: Message }) {
                     <TextButton
                         variant="secondary"
                         onClick={async () => {
+                            const operation = Symbol("copy");
+                            setCopyNotice({ owner: entry.owner, operation, text: "", failed: false });
                             try {
                                 await navigator.clipboard.writeText(entry.text);
-                                setCopyNotice("복사했습니다.");
+                                setCopyNotice((current) =>
+                                    current?.operation === operation ? { ...current, text: "복사했습니다." } : current,
+                                );
                             } catch {
-                                setCopyNotice("복사하지 못했습니다. 번역문을 선택하여 복사해 주십시오.");
+                                setCopyNotice((current) =>
+                                    current?.operation === operation
+                                        ? {
+                                              ...current,
+                                              text: "복사하지 못했습니다. 번역문을 선택하여 복사해 주십시오.",
+                                              failed: true,
+                                          }
+                                        : current,
+                                );
                             }
                         }}
                     >
@@ -77,7 +89,9 @@ export function TranslationAccessory({ message }: { message: Message }) {
                     숨기기
                 </TextButton>
             </div>
-            {copyNotice && <p role="status">{copyNotice}</p>}
+            {copyNotice?.owner === entry.owner && copyNotice.text && (
+                <p role={copyNotice.failed ? "alert" : "status"}>{copyNotice.text}</p>
+            )}
         </section>
     );
 }

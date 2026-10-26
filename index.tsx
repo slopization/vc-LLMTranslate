@@ -2,17 +2,29 @@ import "./styles.css";
 
 import { ChatBarButton, type ChatBarButtonFactory } from "@api/ChatButtons";
 import { findGroupChildrenByChildId, type NavContextMenuPatchCallback } from "@api/ContextMenu";
-import { migratePluginSettings, Settings } from "@api/Settings";
 import { insertTextIntoChatInputBox } from "@utils/discord";
 import definePlugin from "@utils/types";
 import type { Message } from "@vencord/discord-types";
-import { closeModal, DraftStore, DraftType, Menu, Modal, openModal, SelectedChannelStore } from "@webpack/common";
+import {
+    closeModal,
+    DraftStore,
+    DraftType,
+    Menu,
+    MessageStore,
+    Modal,
+    openModal,
+    SelectedChannelStore,
+} from "@webpack/common";
 
 import { Native } from "./utils/bridge";
 import { settings } from "./settings";
 import { getMessageText, translateMessage, TranslationAccessory } from "./components/TranslationAccessory";
 import { TranslateIcon } from "./components/TranslateIcon";
-import { clearMessageTranslations, dismissMessageTranslation } from "./utils/translations";
+import {
+    clearMessageTranslations,
+    dismissMessageTranslation,
+    invalidateMessageTranslation,
+} from "./utils/translations";
 import { Translator } from "./components/Translator";
 
 const modalKey = "llm-translate-modal";
@@ -72,13 +84,6 @@ const TranslateButton: ChatBarButtonFactory = ({ isMainChat, channel, disabled }
     );
 };
 
-migratePluginSettings("LLMTranslate", "LlmTranslate");
-for (const controls of [Settings.uiElements.chatBarButtons, Settings.uiElements.messagePopoverButtons]) {
-    if (!Object.hasOwn(controls, "LLMTranslate") && Object.hasOwn(controls, "LlmTranslate")) {
-        controls.LLMTranslate = { ...controls.LlmTranslate };
-    }
-}
-
 export default definePlugin({
     name: "LLMTranslate",
     description: "사용자가 지정한 LLM 서버로 메시지와 작성할 글을 번역합니다.",
@@ -97,6 +102,19 @@ export default definePlugin({
         },
     },
     flux: {
+        MESSAGE_UPDATE({
+            message,
+        }: {
+            message: Pick<Message, "id"> & Partial<Pick<Message, "content" | "channel_id" | "messageSnapshots">>;
+        }) {
+            if (typeof message.content !== "string") return;
+            const messageSnapshots =
+                message.messageSnapshots ??
+                (message.content === "" && typeof message.channel_id === "string"
+                    ? MessageStore.getMessage(message.channel_id, message.id)?.messageSnapshots
+                    : undefined);
+            invalidateMessageTranslation(message.id, getMessageText({ content: message.content, messageSnapshots }));
+        },
         MESSAGE_DELETE({ id }) {
             dismissMessageTranslation(id);
         },
