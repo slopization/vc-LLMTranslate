@@ -2,7 +2,7 @@ import type { PluginNative } from "@utils/types";
 
 import type { Result, TranslationInput } from "../types";
 
-export const Native = VencordNative.pluginHelpers.LlmTranslate as PluginNative<typeof import("../native")>;
+export const Native = VencordNative.pluginHelpers.LLMTranslate as PluginNative<typeof import("../native")>;
 
 let activeOwner: symbol | undefined;
 let activeRun: Promise<Result<string>> | undefined;

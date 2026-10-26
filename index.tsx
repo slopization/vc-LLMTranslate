@@ -2,6 +2,7 @@ import "./styles.css";
 
 import { ChatBarButton, type ChatBarButtonFactory } from "@api/ChatButtons";
 import { findGroupChildrenByChildId, type NavContextMenuPatchCallback } from "@api/ContextMenu";
+import { migratePluginSettings, Settings } from "@api/Settings";
 import { insertTextIntoChatInputBox } from "@utils/discord";
 import definePlugin from "@utils/types";
 import type { Message } from "@vencord/discord-types";
@@ -71,8 +72,15 @@ const TranslateButton: ChatBarButtonFactory = ({ isMainChat, channel, disabled }
     );
 };
 
+migratePluginSettings("LLMTranslate", "LlmTranslate");
+for (const controls of [Settings.uiElements.chatBarButtons, Settings.uiElements.messagePopoverButtons]) {
+    if (!Object.hasOwn(controls, "LLMTranslate") && Object.hasOwn(controls, "LlmTranslate")) {
+        controls.LLMTranslate = { ...controls.LlmTranslate };
+    }
+}
+
 export default definePlugin({
-    name: "LlmTranslate",
+    name: "LLMTranslate",
     description: "사용자가 지정한 LLM 서버로 메시지와 작성할 글을 번역합니다.",
     authors: [{ name: "slopization", id: 0n }],
     tags: ["Chat", "Utility", "Privacy"],
