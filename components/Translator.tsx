@@ -1,5 +1,7 @@
 import { Button } from "@components/Button";
-import { useEffect, useState } from "@webpack/common";
+import { Paragraph } from "@components/Paragraph";
+import { SettingsSection } from "@components/settings/tabs/plugins/components/Common";
+import { TextArea, useEffect, useState } from "@webpack/common";
 
 import { cancelTranslation, runTranslation } from "../utils/bridge";
 import { LanguageSettings } from "./LanguageSettings";
@@ -69,7 +71,6 @@ export function Translator({ initialText = "", onApply }: TranslatorProps) {
 
     return (
         <section className="llm-translate" aria-label="LLM 번역">
-            <p>번역 버튼을 누르면 아래 원문을 설정한 서버로 전송합니다.</p>
             <form
                 onSubmit={(event) => {
                     event.preventDefault();
@@ -77,19 +78,22 @@ export function Translator({ initialText = "", onApply }: TranslatorProps) {
                 }}
             >
                 <fieldset disabled={busy} className="llm-translate-fields">
-                    <label htmlFor={`${id}-source`}>원문</label>
-                    <textarea
-                        id={`${id}-source`}
-                        value={text}
-                        maxLength={12000}
-                        rows={5}
-                        required
-                        onChange={(event) => {
-                            setText(event.target.value);
-                            invalidate();
-                        }}
-                    />
-                    <LanguageSettings />
+                    <SettingsSection name="원문" id={`${id}-source`} description="">
+                        <TextArea
+                            id={`${id}-source`}
+                            aria-label="원문"
+                            value={text}
+                            maxLength={12000}
+                            rows={4}
+                            required
+                            disabled={busy}
+                            onChange={(value) => {
+                                setText(value);
+                                invalidate();
+                            }}
+                        />
+                    </SettingsSection>
+                    <LanguageSettings disabled={busy} />
                     <div className="llm-translate-actions">
                         <Button type="submit" disabled={!text.trim()}>
                             번역
@@ -109,8 +113,16 @@ export function Translator({ initialText = "", onApply }: TranslatorProps) {
                 outputLanguages.sourceLanguage === sourceLanguage &&
                 outputLanguages.targetLanguage === targetLanguage && (
                     <div className="llm-translate-result">
-                        <label htmlFor={`${id}-result`}>번역 결과</label>
-                        <textarea id={`${id}-result`} value={output} rows={5} readOnly />
+                        <SettingsSection name="번역 결과" id={`${id}-result`} description="">
+                            <TextArea
+                                id={`${id}-result`}
+                                aria-label="번역 결과"
+                                value={output}
+                                rows={4}
+                                readOnly
+                                onChange={() => {}}
+                            />
+                        </SettingsSection>
                         <div className="llm-translate-actions">
                             <Button
                                 variant="secondary"
@@ -144,8 +156,8 @@ export function Translator({ initialText = "", onApply }: TranslatorProps) {
                         </div>
                     </div>
                 )}
-            {notice && <p role="status">{notice}</p>}
-            {error && <p role="alert">{error}</p>}
+            {notice && <Paragraph role="status">{notice}</Paragraph>}
+            {error && <Paragraph role="alert">{error}</Paragraph>}
         </section>
     );
 }

@@ -1,14 +1,19 @@
 import { definePluginSettings } from "@api/Settings";
 import { OptionType } from "@utils/types";
+import { React } from "@webpack/common";
 
+import { ConnectionSettings } from "./components/ConnectionSettings";
+import { LanguageSettings } from "./components/LanguageSettings";
 import { getLanguageLabel, getLanguageName, LANGUAGES, SOURCE_LANGUAGES } from "./utils/languages";
 import type { TranslationInput } from "./types";
 
 export const settings = definePluginSettings({
     sourceLanguage: {
         type: OptionType.SELECT,
-        description: "원문 언어",
+        displayName: "원문 언어",
         hidden: true,
+        description: "",
+        componentProps: { "aria-label": "원문 언어" },
         options: SOURCE_LANGUAGES.map((language) => ({
             label: language.label,
             value: language.value,
@@ -17,13 +22,23 @@ export const settings = definePluginSettings({
     },
     targetLanguage: {
         type: OptionType.SELECT,
-        description: "번역 언어",
+        displayName: "번역 언어",
         hidden: true,
+        description: "",
+        componentProps: { "aria-label": "번역 언어" },
         options: LANGUAGES.map((language) => ({
             label: language.label,
             value: language.value,
             default: language.value === "ko",
         })),
+    },
+    languages: {
+        type: OptionType.COMPONENT,
+        component: () => React.createElement(LanguageSettings),
+    },
+    connection: {
+        type: OptionType.COMPONENT,
+        component: () => React.createElement(ConnectionSettings),
     },
 });
 

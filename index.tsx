@@ -8,7 +8,6 @@ import type { Message } from "@vencord/discord-types";
 import { closeModal, DraftStore, DraftType, Menu, Modal, openModal, SelectedChannelStore } from "@webpack/common";
 
 import { Native } from "./utils/bridge";
-import { ConnectionSettings } from "./components/ConnectionSettings";
 import { settings } from "./settings";
 import { getMessageText, translateMessage, TranslationAccessory } from "./components/TranslationAccessory";
 import { TranslateIcon } from "./components/TranslateIcon";
@@ -78,7 +77,6 @@ export default definePlugin({
     authors: [{ name: "slopization", id: 0n }],
     tags: ["Chat", "Utility", "Privacy"],
     settings,
-    settingsAboutComponent: ConnectionSettings,
     contextMenus: { message: messageMenu },
     chatBarButton: { icon: TranslateIcon, render: TranslateButton },
     renderMessageAccessory: (props) => <TranslationAccessory message={props.message} />,

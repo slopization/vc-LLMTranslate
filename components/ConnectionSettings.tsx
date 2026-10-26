@@ -1,9 +1,13 @@
 import { Button } from "@components/Button";
-import { useEffect, useState } from "@webpack/common";
+import { FormSwitch } from "@components/FormSwitch";
+import { Paragraph } from "@components/Paragraph";
+import { SettingsSection } from "@components/settings/tabs/plugins/components/Common";
+import { TextInput, useEffect, useState } from "@webpack/common";
 
 import { Native } from "../utils/bridge";
-import { LanguageSettings } from "./LanguageSettings";
 import type { Provider, PublicConnection } from "../types";
+import { NativeSelect } from "./NativeSelect";
+import { RepositoryLink } from "./RepositoryLink";
 
 const endpointExamples: Record<Provider, string> = {
     openai: "https://router.example.com/v1/chat/completions",
@@ -74,15 +78,6 @@ export function ConnectionSettings() {
     const busy = loading || saving || deleting;
     const canSave = !busy && dirty && Boolean(endpoint.trim() && model.trim());
     const keepsKey = saved?.hasApiKey && saved.provider === provider && saved.endpoint === endpoint.trim();
-    const connectionStatus = loading
-        ? "연결 정보 확인 중"
-        : loadFailed
-          ? "연결 확인 실패"
-          : saved
-            ? saved.persisted
-                ? "이 기기에 저장됨"
-                : "세션에 저장됨"
-            : "연결 정보 없음";
 
     async function save() {
         if (!canSave) return;
@@ -104,11 +99,7 @@ export function ConnectionSettings() {
             setModel(result.value.model);
             setPersist(result.value.persisted);
             setLoadFailed(false);
-            setNotice(
-                result.value.persisted
-                    ? "연결 정보를 이 기기에 암호화하여 저장했습니다."
-                    : "연결 정보를 적용했습니다. Discord를 종료하면 삭제됩니다.",
-            );
+            setNotice(result.value.persisted ? "연결 정보를 저장했습니다." : "연결 정보를 적용했습니다.");
         } catch {
             setError("연결 정보를 저장하지 못했습니다. 다시 시도해 주십시오.");
         } finally {
@@ -144,164 +135,152 @@ export function ConnectionSettings() {
     }
 
     return (
-        <div className="llm-translate llm-settings">
-            <LanguageSettings />
-            <section className="llm-settings-section" aria-labelledby={`${id}-connection-heading`} aria-busy={busy}>
-                <div className="llm-settings-heading">
-                    <h3 id={`${id}-connection-heading`}>LLM 연결</h3>
-                    <span className="llm-settings-status">{connectionStatus}</span>
-                </div>
-                <p className="llm-translate-help">번역할 때 원문을 아래 서버로 전송합니다.</p>
-                <form
-                    autoComplete="off"
-                    onSubmit={(event) => {
-                        event.preventDefault();
-                        void save();
-                    }}
+        <section className="llm-settings" aria-label="LLM 연결" aria-busy={busy}>
+            <RepositoryLink />
+            <form
+                autoComplete="off"
+                className="llm-settings"
+                onSubmit={(event) => {
+                    event.preventDefault();
+                    void save();
+                }}
+            >
+                <SettingsSection name="API 유형" id={`${id}-provider`} description="">
+                    <NativeSelect
+                        aria-label="API 유형"
+                        options={[
+                            { value: "openai", label: "OpenAI 호환 (Chat Completions)" },
+                            { value: "anthropic", label: "Anthropic (Messages)" },
+                            { value: "gemini", label: "Gemini (generateContent)" },
+                        ]}
+                        isSelected={(value) => value === provider}
+                        serialize={String}
+                        isDisabled={busy}
+                        maxVisibleItems={5}
+                        closeOnSelect
+                        select={(value) => {
+                            if (value !== "openai" && value !== "anthropic" && value !== "gemini") return;
+                            setProvider(value);
+                            setApiKey("");
+                            markEdited();
+                        }}
+                    />
+                </SettingsSection>
+                <SettingsSection
+                    name="최종 API 주소"
+                    id={`${id}-endpoint`}
+                    description={`예: ${endpointExamples[provider]}`}
                 >
-                    <fieldset disabled={busy} className="llm-translate-fields">
-                        <div className="llm-settings-field">
-                            <label htmlFor={`${id}-provider`}>API 유형</label>
-                            <select
-                                id={`${id}-provider`}
-                                name="provider"
-                                value={provider}
-                                onChange={(event) => {
-                                    setProvider(event.target.value as Provider);
-                                    setApiKey("");
-                                    markEdited();
-                                }}
+                    <TextInput
+                        id={`${id}-endpoint`}
+                        aria-label="최종 API 주소"
+                        name="endpoint"
+                        type="text"
+                        inputMode="url"
+                        value={endpoint}
+                        required
+                        maxLength={2048}
+                        disabled={busy}
+                        autoComplete="off"
+                        spellCheck={false}
+                        onChange={(value) => {
+                            setEndpoint(value);
+                            setApiKey("");
+                            markEdited();
+                        }}
+                    />
+                </SettingsSection>
+                <SettingsSection name="모델" id={`${id}-model`} description="">
+                    <TextInput
+                        id={`${id}-model`}
+                        aria-label="모델"
+                        name="model"
+                        value={model}
+                        required
+                        maxLength={200}
+                        disabled={busy}
+                        autoComplete="off"
+                        spellCheck={false}
+                        onChange={(value) => {
+                            setModel(value);
+                            markEdited();
+                        }}
+                    />
+                </SettingsSection>
+                <SettingsSection name={keepsKey ? "API 키 (저장됨)" : "API 키"} id={`${id}-key`} description="">
+                    <TextInput
+                        id={`${id}-key`}
+                        aria-label="API 키"
+                        name="apiKey"
+                        type="password"
+                        value={apiKey}
+                        maxLength={4096}
+                        disabled={busy}
+                        autoComplete="off"
+                        spellCheck={false}
+                        onChange={(value) => {
+                            setApiKey(value);
+                            markEdited();
+                        }}
+                    />
+                </SettingsSection>
+                <FormSwitch
+                    title="이 기기에 암호화하여 저장"
+                    value={persist}
+                    disabled={busy}
+                    hideBorder
+                    onChange={(value) => {
+                        setPersist(value);
+                        markEdited();
+                    }}
+                />
+                <div className="llm-translate-actions">
+                    <Button type="submit" disabled={!canSave}>
+                        {saving ? "저장 중" : "연결 저장"}
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="dangerSecondary"
+                        disabled={busy || (!saved && !loadFailed)}
+                        onClick={() => {
+                            setConfirmDelete(true);
+                            setNotice("");
+                        }}
+                    >
+                        연결 삭제
+                    </Button>
+                </div>
+                {confirmDelete && (
+                    <div
+                        className="llm-settings-confirm"
+                        role="group"
+                        aria-label="연결 삭제 확인"
+                        onKeyDown={(event) => {
+                            if (event.key !== "Escape") return;
+                            event.preventDefault();
+                            event.stopPropagation();
+                            setConfirmDelete(false);
+                        }}
+                    >
+                        <Paragraph>이 연결 정보와 API 키를 삭제합니다.</Paragraph>
+                        <div className="llm-translate-actions">
+                            <Button type="button" variant="dangerPrimary" disabled={busy} onClick={() => void clear()}>
+                                {deleting ? "삭제 중" : "삭제 확인"}
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="secondary"
+                                disabled={busy}
+                                onClick={() => setConfirmDelete(false)}
                             >
-                                <option value="openai">OpenAI 호환 (Chat Completions)</option>
-                                <option value="anthropic">Anthropic (Messages)</option>
-                                <option value="gemini">Gemini (generateContent)</option>
-                            </select>
+                                취소
+                            </Button>
                         </div>
-                        <div className="llm-settings-field">
-                            <label htmlFor={`${id}-endpoint`}>최종 API 주소</label>
-                            <input
-                                id={`${id}-endpoint`}
-                                name="endpoint"
-                                type="text"
-                                inputMode="url"
-                                value={endpoint}
-                                required
-                                maxLength={2048}
-                                autoComplete="off"
-                                spellCheck={false}
-                                aria-describedby={`${id}-endpoint-help`}
-                                onChange={(event) => {
-                                    setEndpoint(event.target.value);
-                                    setApiKey("");
-                                    markEdited();
-                                }}
-                            />
-                            <p id={`${id}-endpoint-help`} className="llm-translate-help">
-                                경로까지 입력합니다. 예: <code dir="ltr">{endpointExamples[provider]}</code>
-                            </p>
-                        </div>
-                        <div className="llm-settings-field">
-                            <label htmlFor={`${id}-model`}>모델</label>
-                            <input
-                                id={`${id}-model`}
-                                name="model"
-                                value={model}
-                                required
-                                maxLength={200}
-                                autoComplete="off"
-                                spellCheck={false}
-                                onChange={(event) => {
-                                    setModel(event.target.value);
-                                    markEdited();
-                                }}
-                            />
-                        </div>
-                        <div className="llm-settings-field">
-                            <label htmlFor={`${id}-key`}>API 키</label>
-                            <input
-                                id={`${id}-key`}
-                                name="apiKey"
-                                type="password"
-                                value={apiKey}
-                                maxLength={4096}
-                                autoComplete="off"
-                                spellCheck={false}
-                                aria-describedby={`${id}-key-help`}
-                                onChange={(event) => {
-                                    setApiKey(event.target.value);
-                                    markEdited();
-                                }}
-                            />
-                            <p id={`${id}-key-help`} className="llm-translate-help">
-                                {keepsKey
-                                    ? "저장된 키가 있습니다. 비워 두면 유지합니다."
-                                    : "이 연결에 사용할 키를 입력합니다. 인증이 없는 서버는 비워 둡니다."}
-                            </p>
-                        </div>
-                        <div className="llm-settings-field">
-                            <label className="llm-translate-check">
-                                <input
-                                    type="checkbox"
-                                    name="persist"
-                                    checked={persist}
-                                    onChange={(event) => {
-                                        setPersist(event.target.checked);
-                                        markEdited();
-                                    }}
-                                />
-                                이 기기에 암호화하여 저장
-                            </label>
-                            <p className="llm-translate-help">선택하지 않으면 Discord를 실행하는 동안만 사용합니다.</p>
-                        </div>
-                        <div className="llm-settings-save-row">
-                            <div className="llm-translate-actions">
-                                <Button type="submit" disabled={!canSave}>
-                                    {saving ? "저장 중" : "연결 저장"}
-                                </Button>
-                                <Button
-                                    type="button"
-                                    variant="dangerSecondary"
-                                    disabled={!saved && !loadFailed}
-                                    onClick={() => {
-                                        setConfirmDelete(true);
-                                        setNotice("");
-                                    }}
-                                >
-                                    연결 삭제
-                                </Button>
-                            </div>
-                            {dirty && <p className="llm-translate-help">저장하지 않은 변경 사항이 있습니다.</p>}
-                        </div>
-                        {confirmDelete && (
-                            <div
-                                className="llm-settings-confirm"
-                                role="group"
-                                aria-label="연결 삭제 확인"
-                                onKeyDown={(event) => {
-                                    if (event.key !== "Escape") return;
-                                    event.preventDefault();
-                                    event.stopPropagation();
-                                    setConfirmDelete(false);
-                                }}
-                            >
-                                <p>이 연결 정보와 API 키를 삭제합니다.</p>
-                                <div className="llm-translate-actions">
-                                    <Button type="button" variant="dangerPrimary" onClick={() => void clear()}>
-                                        {deleting ? "삭제 중" : "삭제 확인"}
-                                    </Button>
-                                    <Button type="button" variant="secondary" onClick={() => setConfirmDelete(false)}>
-                                        취소
-                                    </Button>
-                                </div>
-                            </div>
-                        )}
-                    </fieldset>
-                </form>
-                <p role="status" className="llm-settings-notice">
-                    {notice}
-                </p>
-                {error && <p role="alert">{error}</p>}
-            </section>
-        </div>
+                    </div>
+                )}
+            </form>
+            {notice && <Paragraph role="status">{notice}</Paragraph>}
+            {error && <Paragraph role="alert">{error}</Paragraph>}
+        </section>
     );
 }
