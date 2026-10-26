@@ -1,4 +1,4 @@
-# LlmTranslate
+# LLMTranslate
 
 지정한 LLM 서버로 메시지를 번역하고, 원문 아래에 본인에게만 보이는 결과를 표시하는 Vencord 플러그인입니다.
 
@@ -14,8 +14,8 @@ pnpm build
 pnpm inject
 ```
 
-Discord를 재시작하고 `LlmTranslate`를 활성화합니다.
-플러그인 설정에 API 유형, 전체 API 주소, 모델과 API 키를 입력합니다.
+Discord를 재시작하고 `LLMTranslate`를 활성화합니다.\
+플러그인 설정에 API 유형, 전체 API 주소, 모델과 API 키를 입력합니다.\
 OpenAI 호환, Anthropic, Gemini를 지원합니다.
 
 ## 사용
