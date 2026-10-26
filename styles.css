@@ -1,0 +1,227 @@
+.llm-translate {
+    --llm-border: var(--border-strong, oklab(60% 0 0));
+    --llm-focus: oklab(78% -0.03 -0.1);
+
+    display: grid;
+    gap: var(--space-16, 16px);
+    min-width: 0;
+    color: var(--text-default, oklab(94% 0 0));
+    font-size: 0.875rem;
+    line-height: 1.5;
+    word-break: keep-all;
+}
+
+.llm-translate p {
+    margin: 0;
+}
+
+.llm-translate-fields,
+.llm-translate-result {
+    display: grid;
+    gap: var(--space-8, 8px);
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.llm-translate-fields {
+    gap: var(--space-16, 16px);
+}
+
+.llm-translate input:not([type="checkbox"]),
+.llm-translate select,
+.llm-translate textarea {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    padding: var(--space-8, 8px);
+    border: 1px solid var(--llm-border);
+    border-radius: var(--radius-sm, 4px);
+    background: var(--background-base-lowest, oklab(23% 0 0));
+    color: inherit;
+    font: inherit;
+    font-size: 1rem;
+}
+
+.llm-translate textarea {
+    resize: vertical;
+    white-space: pre-wrap;
+    word-break: normal;
+    overflow-wrap: anywhere;
+}
+
+.llm-translate :focus-visible {
+    outline: 2px solid var(--llm-focus);
+    outline-offset: 2px;
+}
+
+.llm-translate-help {
+    color: var(--text-muted, oklab(78% 0 0));
+    font-size: 0.8125rem;
+    overflow-wrap: anywhere;
+}
+
+.llm-translate code {
+    user-select: text;
+    word-break: break-all;
+}
+
+.llm-translate-check {
+    display: flex;
+    gap: var(--space-8, 8px);
+    align-items: center;
+}
+
+.llm-translate-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-8, 8px);
+    align-items: center;
+    margin-top: var(--space-8, 8px);
+}
+
+.llm-translate [role="alert"] {
+    padding-inline-start: var(--space-8, 8px);
+    border-inline-start: 3px solid oklab(78% 0.1 0.04);
+}
+
+.llm-translate :disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
+.llm-settings {
+    gap: var(--space-24, 24px);
+}
+
+.llm-settings-section,
+.llm-settings-field,
+.llm-language-fields,
+.llm-settings-save-row {
+    display: grid;
+    min-width: 0;
+}
+
+.llm-settings-section,
+.llm-language-fields {
+    gap: var(--space-16, 16px);
+}
+
+.llm-settings-field,
+.llm-settings-save-row {
+    gap: var(--space-8, 8px);
+}
+
+.llm-settings-heading {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-8, 8px) var(--space-16, 16px);
+    align-items: baseline;
+    justify-content: space-between;
+}
+
+.llm-settings-heading h3 {
+    margin: 0;
+    color: inherit;
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.llm-settings-status {
+    color: var(--text-muted, oklab(78% 0 0));
+    font-size: 0.8125rem;
+}
+
+.llm-settings-field label {
+    font-weight: 500;
+}
+
+.llm-settings-section + .llm-settings-section {
+    padding-block-start: var(--space-24, 24px);
+    border-block-start: 1px solid var(--border-subtle, oklab(45% 0 0));
+}
+
+.llm-settings .llm-translate-actions {
+    margin-top: 0;
+}
+
+.llm-settings-confirm {
+    display: grid;
+    gap: var(--space-16, 16px);
+    padding: var(--space-16, 16px);
+    border: 1px solid var(--llm-border);
+    border-radius: var(--radius-sm, 4px);
+}
+
+.llm-settings-notice {
+    overflow-wrap: anywhere;
+}
+
+.llm-translation {
+    display: grid;
+    gap: var(--space-8, 8px);
+    min-width: 0;
+    max-inline-size: 100%;
+    margin-block-start: var(--space-8, 8px);
+    padding-inline-start: var(--space-12, 12px);
+    border-inline-start: 2px solid var(--border-subtle, oklab(45% 0 0));
+    color: var(--text-default, oklab(94% 0 0));
+    font-size: 0.875rem;
+    line-height: 1.5;
+    word-break: keep-all;
+}
+
+.llm-translation p {
+    margin: 0;
+}
+
+.llm-translation-header,
+.llm-translation-label,
+.llm-translation-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-8, 8px);
+    align-items: center;
+    min-width: 0;
+}
+
+.llm-translation-header {
+    justify-content: space-between;
+}
+
+.llm-translation-label {
+    font-weight: 500;
+}
+
+.llm-translation-note {
+    color: var(--text-muted, oklab(78% 0 0));
+    font-size: 0.8125rem;
+    overflow-wrap: anywhere;
+}
+
+.llm-translation-text {
+    white-space: pre-wrap;
+    word-break: normal;
+    overflow-wrap: anywhere;
+    user-select: text;
+}
+
+.llm-translation-actions {
+    gap: var(--space-16, 16px);
+    font-size: 0.8125rem;
+}
+
+.llm-translation-actions button {
+    min-height: 24px;
+}
+
+.llm-translation :focus-visible {
+    outline: 2px solid oklab(78% -0.03 -0.1);
+    outline-offset: 2px;
+}
+
+.llm-translation [role="alert"] {
+    overflow-wrap: anywhere;
+}
