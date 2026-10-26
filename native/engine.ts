@@ -3,6 +3,7 @@ import type { Connection, Problem, Result, TranslationInput } from "../types";
 const MAX_RESPONSE_BYTES = 1024 * 1024;
 const MAX_INPUT_LENGTH = 12000;
 const MAX_OUTPUT_LENGTH = 24000;
+const MAX_OUTPUT_TOKENS = 8192;
 
 function hasControlCharacters(value: string): boolean {
     return Array.from(value).some((character) => {
@@ -54,7 +55,7 @@ export function validateConnection(value: unknown): Result<Connection> {
     }
 
     try {
-        const url = new URL(endpoint.replaceAll("{model}", "llm-model-placeholder"));
+        const url = new URL(endpoint);
         const loopback = ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname);
         if (
             (url.protocol !== "https:" && !(url.protocol === "http:" && loopback)) ||
@@ -62,9 +63,8 @@ export function validateConnection(value: unknown): Result<Connection> {
             url.password ||
             url.search ||
             url.hash ||
-            (endpoint.includes("{model}") &&
-                (value.provider !== "gemini" || !url.pathname.includes("llm-model-placeholder"))) ||
-            url.hostname.includes("llm-model-placeholder")
+            (endpoint.includes("{model}") && value.provider !== "gemini") ||
+            url.hostname.includes("{model}")
         ) {
             return failure(
                 "invalid_endpoint",
@@ -78,7 +78,7 @@ export function validateConnection(value: unknown): Result<Connection> {
             ok: true,
             value: {
                 provider: value.provider as Connection["provider"],
-                endpoint: url.toString().replaceAll("llm-model-placeholder", "{model}"),
+                endpoint: `${url.origin}${value.provider === "gemini" ? url.pathname.replace(/%7[bB]model%7[dD]/g, "{model}") : url.pathname}`,
                 model: value.model.trim(),
                 apiKey: value.apiKey.trim(),
             },
@@ -135,6 +135,7 @@ function requestFor(connection: Connection, input: TranslationInput): RequestIni
                 { role: "system", content: instruction },
                 { role: "user", content },
             ],
+            max_completion_tokens: MAX_OUTPUT_TOKENS,
             stream: false,
         };
     } else if (connection.provider === "anthropic") {
@@ -144,7 +145,7 @@ function requestFor(connection: Connection, input: TranslationInput): RequestIni
             model: connection.model,
             system: instruction,
             messages: [{ role: "user", content }],
-            max_tokens: 8192,
+            max_tokens: MAX_OUTPUT_TOKENS,
             stream: false,
         };
     } else {
@@ -152,7 +153,7 @@ function requestFor(connection: Connection, input: TranslationInput): RequestIni
         body = {
             systemInstruction: { parts: [{ text: instruction }] },
             contents: [{ role: "user", parts: [{ text: content }] }],
-            generationConfig: { maxOutputTokens: 8192 },
+            generationConfig: { maxOutputTokens: MAX_OUTPUT_TOKENS },
         };
     }
 
@@ -193,7 +194,7 @@ class ResponseLimitError extends Error {}
 
 async function readResponse(response: Response): Promise<unknown> {
     if (Number(response.headers.get("content-length")) > MAX_RESPONSE_BYTES) {
-        await response.body?.cancel();
+        await response.body?.cancel().catch(() => {});
         throw new ResponseLimitError();
     }
     if (!response.body) return null;
@@ -206,7 +207,7 @@ async function readResponse(response: Response): Promise<unknown> {
             if (done) break;
             length += value.byteLength;
             if (length > MAX_RESPONSE_BYTES) {
-                await reader.cancel();
+                await reader.cancel().catch(() => {});
                 throw new ResponseLimitError();
             }
             chunks.push(value);
@@ -257,12 +258,12 @@ export class TranslationEngine {
             );
             const response = await (options.fetch ?? fetch)(endpoint, { ...request, signal: controller.signal });
             if (!response.ok) {
-                await response.body?.cancel();
+                await response.body?.cancel().catch(() => {});
                 return failure(
                     "upstream_http",
                     response.status,
                     "번역 서버 오류",
-                    "번역 서버가 요청을 거부했습니다. API 형식, 주소, 모델, API 키와 서버 상태를 확인해 주십시오.",
+                    `번역 서버가 HTTP ${response.status} 상태로 요청을 거부했습니다. API 형식, 주소, 모델, API 키와 서버 상태를 확인해 주십시오.`,
                 );
             }
             const text = textFrom(await readResponse(response), checkedConnection.value.provider);
