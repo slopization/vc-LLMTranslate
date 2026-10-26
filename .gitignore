@@ -1,0 +1,10 @@
+/.dev/
+/.cleanup/
+node_modules/
+/*
+!/.gitignore
+!/README.md
+!/LICENSE
+!/*.ts
+!/*.tsx
+!/*.css
