@@ -7,9 +7,7 @@
 Vencord 최상위 폴더에서 실행합니다.
 
 ```text
-cd src/userplugins
-git clone https://github.com/slopization/vc-LLMTranslate.git
-cd ../..
+git clone https://github.com/slopization/vc-LLMTranslate.git src/userplugins/vc-LLMTranslate
 pnpm build
 pnpm inject
 ```
