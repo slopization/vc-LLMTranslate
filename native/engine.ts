@@ -74,11 +74,25 @@ export function validateConnection(value: unknown): Result<Connection> {
             );
         }
 
+        const pathname =
+            value.provider === "gemini" ? url.pathname.replace(/%7[bB]model%7[dD]/g, "{model}") : url.pathname;
+        if (value.provider === "gemini" && !pathname.includes("{model}")) {
+            const match = pathname.match(/\/models\/([^/]+):generateContent$/);
+            if (!match || decodeURIComponent(match[1]) !== value.model.trim()) {
+                return failure(
+                    "invalid_endpoint",
+                    400,
+                    "주소 오류",
+                    "Gemini API 주소에 {model}을 넣거나 주소의 모델명과 설정의 모델명을 일치시켜 주십시오.",
+                );
+            }
+        }
+
         return {
             ok: true,
             value: {
                 provider: value.provider as Connection["provider"],
-                endpoint: `${url.origin}${value.provider === "gemini" ? url.pathname.replace(/%7[bB]model%7[dD]/g, "{model}") : url.pathname}`,
+                endpoint: `${url.origin}${pathname}`,
                 model: value.model.trim(),
                 apiKey: value.apiKey.trim(),
             },
