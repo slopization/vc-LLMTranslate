@@ -164,6 +164,8 @@ export function Translator({ initialText = "", onApply }: TranslatorProps) {
                                 <Button
                                     onClick={() => {
                                         setCopyNotice(undefined);
+                                        setNotice("");
+                                        setError("");
                                         if (onApply(output))
                                             setNotice(
                                                 "입력창에 번역 결과를 추가했습니다. 내용을 확인한 뒤 전송해 주십시오.",
