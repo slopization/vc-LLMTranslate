@@ -107,7 +107,7 @@ export default definePlugin({
             message,
         }: {
             message: Pick<Message, "id"> &
-                Partial<Pick<Message, "content" | "channel_id" | "messageSnapshots" | "embeds">>;
+                Partial<Pick<Message, "content" | "channel_id" | "messageSnapshots" | "embeds" | "components">>;
         }) {
             if (typeof message.content !== "string") return;
             const messageSnapshots =
@@ -117,7 +117,12 @@ export default definePlugin({
                     : undefined);
             invalidateMessageTranslation(
                 message.id,
-                getMessageText({ content: message.content, embeds: message.embeds, messageSnapshots }),
+                getMessageText({
+                    content: message.content,
+                    embeds: message.embeds,
+                    components: message.components,
+                    messageSnapshots,
+                }),
             );
         },
         MESSAGE_DELETE({ id }) {

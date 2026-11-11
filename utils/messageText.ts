@@ -9,13 +9,24 @@ type EmbedText = {
     fields?: readonly { rawName?: string; rawValue?: string; name?: string; value?: string }[];
 };
 
-export type MessageText = {
+type ComponentText = {
+    type?: number;
+    content?: string;
+    components?: readonly ComponentText[];
+};
+
+type MessageParts = {
     content: string;
     embeds?: readonly EmbedText[];
-    messageSnapshots?: readonly { message: { content: string; embeds?: readonly EmbedText[] } }[];
+    components?: readonly ComponentText[];
+};
+
+export type MessageText = MessageParts & {
+    messageSnapshots?: readonly { message: MessageParts }[];
 };
 
 const TEXT_EMBEDS = new Set(["rich", "auto_moderation_message"]);
+const TEXT_DISPLAY = 10;
 
 function getEmbedText(embed: EmbedText) {
     if (!TEXT_EMBEDS.has(embed.type ?? "")) return "";
@@ -32,8 +43,18 @@ function getEmbedText(embed: EmbedText) {
         .join("\n\n");
 }
 
+function getComponentText(components: readonly ComponentText[] = []): string[] {
+    return components.flatMap((component) => [
+        ...(component.type === TEXT_DISPLAY && component.content ? [component.content] : []),
+        ...getComponentText(component.components),
+    ]);
+}
+
 export function getMessageText(message: MessageText) {
     const snapshot = message.messageSnapshots?.[0]?.message;
+    const components = message.components?.length ? message.components : snapshot?.components;
     const embeds = message.embeds?.length ? message.embeds : (snapshot?.embeds ?? []);
-    return [message.content || snapshot?.content, ...embeds.map(getEmbedText)].filter(Boolean).join("\n\n");
+    return [message.content || snapshot?.content, ...getComponentText(components), ...embeds.map(getEmbedText)]
+        .filter(Boolean)
+        .join("\n\n");
 }
