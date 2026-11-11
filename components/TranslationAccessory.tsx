@@ -3,6 +3,7 @@ import type { Message } from "@vencord/discord-types";
 import { useEffect, useState } from "@webpack/common";
 
 import { getTranslationOptions } from "../settings";
+import { getMessageText } from "../utils/messageText";
 import { TranslateIcon } from "./TranslateIcon";
 import {
     dismissMessageTranslation,
@@ -11,10 +12,6 @@ import {
     requestMessageTranslation,
     subscribeMessageTranslation,
 } from "../utils/translations";
-
-export function getMessageText(message: Pick<Message, "content"> & Partial<Pick<Message, "messageSnapshots">>) {
-    return message.content || message.messageSnapshots?.[0]?.message.content || "";
-}
 
 export function translateMessage(message: Message) {
     return requestMessageTranslation(message.id, getMessageText(message), getTranslationOptions());

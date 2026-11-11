@@ -18,7 +18,8 @@ import {
 
 import { Native } from "./utils/bridge";
 import { settings } from "./settings";
-import { getMessageText, translateMessage, TranslationAccessory } from "./components/TranslationAccessory";
+import { translateMessage, TranslationAccessory } from "./components/TranslationAccessory";
+import { getMessageText } from "./utils/messageText";
 import { TranslateIcon } from "./components/TranslateIcon";
 import {
     clearMessageTranslations,
@@ -105,7 +106,8 @@ export default definePlugin({
         MESSAGE_UPDATE({
             message,
         }: {
-            message: Pick<Message, "id"> & Partial<Pick<Message, "content" | "channel_id" | "messageSnapshots">>;
+            message: Pick<Message, "id"> &
+                Partial<Pick<Message, "content" | "channel_id" | "messageSnapshots" | "embeds">>;
         }) {
             if (typeof message.content !== "string") return;
             const messageSnapshots =
@@ -113,7 +115,10 @@ export default definePlugin({
                 (message.content === "" && typeof message.channel_id === "string"
                     ? MessageStore.getMessage(message.channel_id, message.id)?.messageSnapshots
                     : undefined);
-            invalidateMessageTranslation(message.id, getMessageText({ content: message.content, messageSnapshots }));
+            invalidateMessageTranslation(
+                message.id,
+                getMessageText({ content: message.content, embeds: message.embeds, messageSnapshots }),
+            );
         },
         MESSAGE_DELETE({ id }) {
             dismissMessageTranslation(id);
